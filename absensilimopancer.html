@@ -64,7 +64,7 @@
                     </button>
                 </div>
                 <!-- Tombol Logout Admin -->
-                <button id="btn-logout" onclick="logoutAdmin()" class="hidden bg-red-600/20 hover:bg-red-600/40 text-red-400 p-2 rounded-xl border border-red-500/30 transition-all" title="Logout Admin[...]
+                <button id="btn-logout" onclick="logoutAdmin()" class="hidden bg-red-600/20 hover:bg-red-600/40 text-red-400 p-2 rounded-xl border border-red-500/30 transition-all" title="Logout Admin">
                     <i data-lucide="log-out" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -78,7 +78,7 @@
             <div class="bg-slate-800/60 border border-slate-700/60 rounded-3xl p-6 shadow-2xl text-center">
                 <div class="mb-4">
                     <h2 class="text-xl font-bold text-white">LIMO PANCER</h2>
-                    <p class="text-xs text-slate-400 mt-1">Arahkan kamera ke QR / Barcode ID TUKANG</p>
+                    <p class="text-xs text-slate-400 mt-1">Arahkan kamera ke QR / Barcode ID KULI</p>
                 </div>
 
                 <!-- Reader Kamera -->
@@ -98,7 +98,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-2xl flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium text-slate-400">Total TUKANG</p>
+                        <p class="text-xs font-medium text-slate-400">Total KULI</p>
                         <p id="stat-total-emp" class="text-2xl font-bold text-white mt-1">0</p>
                     </div>
                     <div class="bg-blue-500/10 p-3 rounded-xl text-blue-400">
@@ -136,46 +136,49 @@
 
             <!-- Management Section -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Form Tambah TUKANG -->
+                <!-- Form Tambah KULI -->
                 <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
                     <div>
                         <div class="flex items-center gap-2 mb-4">
                             <i data-lucide="user-plus" class="w-5 h-5 text-blue-400"></i>
-                            <h2 class="font-bold text-base text-white">Tambah TUKANG Baru</h2>
+                            <h2 class="font-bold text-base text-white">Tambah KULI Baru</h2>
                         </div>
                         <form id="form-add-employee" onsubmit="handleAddEmployee(event)" class="space-y-4">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Lengkap</label>
                                 <input type="text" id="input-name" required placeholder="Contoh: Ahmad Rizki"
-                                    class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500[...]
+                                    class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-300 mb-1">Departemen / Divisi</label>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Jabatan</label>
                                 <select id="input-dept" required
                                     class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition-colors">
-                                    <option value="">-- Pilih Departemen --</option>
-                                    <option value="IT & Software">IT & Software</option>
-                                    <option value="Human Resources">Human Resources</option>
-                                    <option value="Marketing">Marketing</option>
-                                    <option value="Finance">Finance</option>
-                                    <option value="Operations">Operations</option>
+                                    <option value="">-- Pilih Jabatan --</option>
+                                    <option value="Tukang Batu/Sipil">Tukang Batu/Sipil</option>
+                                    <option value="Tukang Besi">Tukang Besi</option>
+                                    <option value="Tukang Kayu">Tukang Kayu</option>
+                                    <option value="Tukang Keramik">Tukang Keramik</option>
+                                    <option value="Tukang Gypsum/Plafon">Tukang Gypsum/Plafon</option>
+                                    <option value="Tukang Cat/Finishing">Tukang Cat/Finishing</option>
+                                    <option value="Tukang Listrik (Elektrikal)">Tukang Listrik (Elektrikal)</option>
+                                    <option value="Tukang Ledeng (Plambing)">Tukang Ledeng (Plambing)</option>
                                 </select>
                             </div>
                             <button type="submit"
-                                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-bl[...]
+                                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30">
                                 <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                                <span>Simpan TUKANG</span>
+                                <span>Simpan KULI</span>
                             </button>
                         </form>
                     </div>
                 </div>
 
-                <!-- Kartu QR TUKANG List -->
+                <!-- Kartu QR KULI List -->
                 <div class="lg:col-span-2 bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-2">
                             <i data-lucide="qr-code" class="w-5 h-5 text-emerald-400"></i>
-                            <h2 class="font-bold text-base text-white">Kartu QR TUKANG</h2>
+                            <h2 class="font-bold text-base text-white">Kartu QR KULI</h2>
                         </div>
                     </div>
                     <div id="employee-card-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
@@ -193,8 +196,8 @@
                     </div>
                     <div class="relative">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
-                        <input type="text" id="search-log" onkeyup="filterLogs()" placeholder="Cari nama TUKANG..."
-                            class="bg-slate-900/80 border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 w-full sm:w[...]
+                        <input type="text" id="search-log" onkeyup="filterLogs()" placeholder="Cari nama KULI..."
+                            class="bg-slate-900/80 border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 w-full sm:w-48 transition-colors">
                     </div>
                 </div>
 
@@ -202,7 +205,7 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-900/80 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700/60">
-                                <th class="p-3.5">TUKANG</th>
+                                <th class="p-3.5">KULI</th>
                                 <th class="p-3.5">Tanggal</th>
                                 <th class="p-3.5">Jam Masuk</th>
                                 <th class="p-3.5">Jam Keluar</th>
@@ -260,17 +263,42 @@
             
             <div class="bg-white p-6 rounded-xl text-slate-900 space-y-3 shadow-inner">
                 <div id="qrcode-box" class="flex justify-center my-2"></div>
-                <h4 id="modal-emp-name" class="font-bold text-base leading-tight">Nama TUKANG</h4>
-                <p id="modal-emp-dept" class="text-xs text-slate-500">Departemen</p>
+                <h4 id="modal-emp-name" class="font-bold text-base leading-tight">Nama KULI</h4>
+                <p id="modal-emp-dept" class="text-xs text-slate-500">Jabatan</p>
                 <div id="modal-emp-code" class="inline-block bg-slate-100 text-slate-700 text-xs font-mono font-bold px-3 py-1 rounded-full border border-slate-300">
                     EMP-0000
                 </div>
             </div>
 
-            <button onclick="window.print()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 transition-all [...]
+            <button onclick="window.print()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/30">
                 <i data-lucide="printer" class="w-4 h-4"></i>
                 <span>Cetak / Simpan Kartu</span>
             </button>
+        </div>
+    </div>
+
+    <!-- MODAL 3: KONFIRMASI HAPUS KULI -->
+    <div id="delete-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative">
+            <button onclick="closeDeleteModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="w-12 h-12 bg-red-600/20 text-red-400 rounded-2xl flex items-center justify-center mx-auto border border-red-500/30">
+                <i data-lucide="trash-2" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-lg text-white">Hapus KULI?</h3>
+                <p id="delete-emp-name" class="text-xs text-slate-400 mt-1">Nama KULI</p>
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="closeDeleteModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 rounded-xl text-sm transition-all">
+                    Batal
+                </button>
+                <button id="confirm-delete-btn" onclick="confirmDelete()" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-all">
+                    Hapus
+                </button>
+            </div>
         </div>
     </div>
 
@@ -283,11 +311,12 @@
         let html5QrcodeScanner = null;
         let isProcessing = false;
         let isAdminLoggedIn = false;
+        let deleteEmployeeId = null;
 
         let localEmployees = [
-            { id: 1, barcode_id: "EMP-1001", name: "Budi Santoso", department: "IT & Software" },
-            { id: 2, barcode_id: "EMP-1002", name: "Siti Rahma", department: "Human Resources" },
-            { id: 3, barcode_id: "EMP-1003", name: "Deni Pratama", department: "Marketing" }
+            { id: 1, barcode_id: "EMP-1001", name: "Budi Santoso", department: "Tukang Batu/Sipil" },
+            { id: 2, barcode_id: "EMP-1002", name: "Siti Rahma", department: "Tukang Kayu" },
+            { id: 3, barcode_id: "EMP-1003", name: "Deni Pratama", department: "Tukang Listrik (Elektrikal)" }
         ];
 
         let localLogs = [
@@ -478,11 +507,18 @@
                             ${emp.barcode_id}
                         </span>
                     </div>
-                    <button onclick="showQrModal('${emp.name}', '${emp.department}', '${emp.barcode_id}')" 
-                        class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 p-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
-                        <i data-lucide="qr-code" class="w-4 h-4 text-emerald-400"></i>
-                        <span>Cetak</span>
-                    </button>
+                    <div class="flex flex-col gap-1">
+                        <button onclick="showQrModal('${emp.name}', '${emp.department}', '${emp.barcode_id}')" 
+                            class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 p-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                            <i data-lucide="qr-code" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Cetak</span>
+                        </button>
+                        <button onclick="showDeleteModal(${emp.id}, '${emp.name}')" 
+                            class="bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/30 p-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            <span>Hapus</span>
+                        </button>
+                    </div>
                 </div>
             `).join('');
 
@@ -567,6 +603,41 @@
         function closeModal() {
             document.getElementById('qr-modal').classList.add('hidden');
             document.getElementById('qr-modal').classList.remove('flex');
+        }
+
+        function showDeleteModal(empId, empName) {
+            deleteEmployeeId = empId;
+            document.getElementById('delete-emp-name').innerText = empName;
+            document.getElementById('delete-modal').classList.remove('hidden');
+            document.getElementById('delete-modal').classList.add('flex');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.add('hidden');
+            document.getElementById('delete-modal').classList.remove('flex');
+            deleteEmployeeId = null;
+        }
+
+        function confirmDelete() {
+            if (deleteEmployeeId === null) return;
+
+            fetch(`${API_BASE}/admin/employees/${deleteEmployeeId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(res => {
+                closeDeleteModal();
+                fetchEmployees();
+                fetchLogs();
+            })
+            .catch(() => {
+                localEmployees = localEmployees.filter(emp => emp.id !== deleteEmployeeId);
+                localLogs = localLogs.filter(log => log.employee_id !== deleteEmployeeId);
+                closeDeleteModal();
+                renderEmployees(localEmployees);
+                renderLogs(localLogs);
+            });
         }
     </script>
 </body>
