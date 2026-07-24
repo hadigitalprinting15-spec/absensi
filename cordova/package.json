@@ -1,0 +1,21 @@
+{
+  "name": "limopancer-absensi",
+  "version": "1.0.0",
+  "description": "Sistem Absensi Barcode/QR untuk Proyek LIMO PANCER",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "absensi",
+    "barcode",
+    "qr-code",
+    "android",
+    "cordova"
+  ],
+  "author": "LIMO PANCER Team",
+  "license": "MIT",
+  "devDependencies": {
+    "cordova": "^11.0.0"
+  }
+}
