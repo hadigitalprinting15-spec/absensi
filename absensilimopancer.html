@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIMO PANCER - Sistem Absensi & Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Library Pemindai QR/Barcode Kamera -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- Library Pembuat QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        #reader video {
+            object-fit: cover !important;
+            border-radius: 1rem;
+        }
+        #reader__dashboard_section_csr button {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-12">
+
+    <!-- Header / Navbar Navigasi -->
+    <header class="bg-slate-800/90 backdrop-blur-md border-b border-slate-700/60 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-xl text-white">
+                    <i data-lucide="qr-code" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <!-- JUDUL DITAMBAHKAN "LIMO PANCER" -->
+                    <h1 class="font-bold text-base sm:text-lg leading-tight text-white">LIMO PANCER</h1>
+                    <p class="text-[10px] sm:text-xs text-slate-400">Sistem Absensi Barcode / QR</p>
+                </div>
+            </div>
+
+            <!-- Tombol Switch Mode & Logout -->
+            <div class="flex items-center gap-2">
+                <div class="flex bg-slate-900/80 p-1 rounded-xl border border-slate-700/80">
+                    <button id="btn-tab-scanner" onclick="switchTab('scanner')" 
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-blue-600 text-white shadow-md">
+                        <i data-lucide="camera" class="w-4 h-4"></i>
+                        <span>Scan Absen</span>
+                    </button>
+                    <button id="btn-tab-admin" onclick="switchTab('admin')" 
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-400 hover:text-white">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i>
+                        <span>Dashboard Admin</span>
+                    </button>
+                </div>
+                <!-- Tombol Logout Admin -->
+                <button id="btn-logout" onclick="logoutAdmin()" class="hidden bg-red-600/20 hover:bg-red-600/40 text-red-400 p-2 rounded-xl border border-red-500/30 transition-all" title="Logout Admin">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+
+        <!-- VIEW 1: TAB SCANNER ABSENSI -->
+        <section id="view-scanner" class="max-w-md mx-auto space-y-4">
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-3xl p-6 shadow-2xl text-center">
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold text-white">LIMO PANCER</h2>
+                    <p class="text-xs text-slate-400 mt-1">Arahkan kamera ke QR / Barcode ID Karyawan</p>
+                </div>
+
+                <!-- Reader Kamera -->
+                <div id="reader" class="bg-slate-900 rounded-2xl overflow-hidden border border-slate-700"></div>
+
+                <!-- Kartu Indicator Status Scan -->
+                <div id="status-card" class="mt-4 p-4 rounded-xl bg-slate-900 border border-slate-700 transition-all">
+                    <p id="status-text" class="text-sm font-medium text-slate-300">Siap melakukan pemindaian...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 2: TAB DASHBOARD ADMIN -->
+        <section id="view-admin" class="hidden space-y-6">
+            
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Total Karyawan</p>
+                        <p id="stat-total-emp" class="text-2xl font-bold text-white mt-1">0</p>
+                    </div>
+                    <div class="bg-blue-500/10 p-3 rounded-xl text-blue-400">
+                        <i data-lucide="users" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Hadir Hari Ini</p>
+                        <p id="stat-present" class="text-2xl font-bold text-emerald-400 mt-1">0</p>
+                    </div>
+                    <div class="bg-emerald-500/10 p-3 rounded-xl text-emerald-400">
+                        <i data-lucide="user-check" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Terlambat</p>
+                        <p id="stat-late" class="text-2xl font-bold text-amber-400 mt-1">0</p>
+                    </div>
+                    <div class="bg-amber-500/10 p-3 rounded-xl text-amber-400">
+                        <i data-lucide="clock-alert" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400">Sudah Check-Out</p>
+                        <p id="stat-checkout" class="text-2xl font-bold text-purple-400 mt-1">0</p>
+                    </div>
+                    <div class="bg-purple-500/10 p-3 rounded-xl text-purple-400">
+                        <i data-lucide="log-out" class="w-6 h-6"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Management Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Form Tambah Karyawan -->
+                <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <i data-lucide="user-plus" class="w-5 h-5 text-blue-400"></i>
+                            <h2 class="font-bold text-base text-white">Tambah Karyawan Baru</h2>
+                        </div>
+                        <form id="form-add-employee" onsubmit="handleAddEmployee(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Lengkap</label>
+                                <input type="text" id="input-name" required placeholder="Contoh: Ahmad Rizki"
+                                    class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Departemen / Divisi</label>
+                                <select id="input-dept" required
+                                    class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition-colors">
+                                    <option value="">-- Pilih Departemen --</option>
+                                    <option value="IT & Software">IT & Software</option>
+                                    <option value="Human Resources">Human Resources</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Operations">Operations</option>
+                                </select>
+                            </div>
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 active:scale-95">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                                <span>Simpan Karyawan</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Kartu QR Karyawan List -->
+                <div class="lg:col-span-2 bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="qr-code" class="w-5 h-5 text-emerald-400"></i>
+                            <h2 class="font-bold text-base text-white">Kartu QR Karyawan</h2>
+                        </div>
+                    </div>
+                    <div id="employee-card-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
+                        <!-- Items rendered by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabel Log Absensi Realtime -->
+            <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 shadow-lg">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="clipboard-list" class="w-5 h-5 text-purple-400"></i>
+                        <h2 class="font-bold text-base text-white">Rekap Absensi Hari Ini</h2>
+                    </div>
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+                        <input type="text" id="search-log" onkeyup="filterLogs()" placeholder="Cari nama karyawan..."
+                            class="bg-slate-900/80 border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 w-full sm:w-64">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-slate-700/60">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-900/80 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700/60">
+                                <th class="p-3.5">Karyawan</th>
+                                <th class="p-3.5">Tanggal</th>
+                                <th class="p-3.5">Jam Masuk</th>
+                                <th class="p-3.5">Jam Keluar</th>
+                                <th class="p-3.5 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-table-body" class="divide-y divide-slate-700/40 text-sm text-slate-200">
+                            <!-- Rows rendered by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- MODAL 1: LOGIN ADMIN -->
+    <div id="login-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative">
+            <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="w-12 h-12 bg-blue-600/20 text-blue-400 rounded-2xl flex items-center justify-center mx-auto border border-blue-500/30">
+                <i data-lucide="lock" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-lg text-white">Akses Admin LIMO PANCER</h3>
+                <p class="text-xs text-slate-400 mt-1">Masukkan kata sandi untuk membuka dashboard admin</p>
+            </div>
+            
+            <form onsubmit="handleAdminLogin(event)" class="space-y-3">
+                <div class="relative">
+                    <input type="password" id="admin-password" required placeholder="Masukkan Password" 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-4 pr-11 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                    <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-2.5 text-slate-400 hover:text-white focus:outline-none">
+                        <i id="eye-icon" data-lucide="eye" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <p id="login-error" class="text-xs text-red-400 hidden">Password salah! Silakan coba lagi.</p>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-blue-600/30">
+                    Masuk
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: CETAK QR CODE -->
+    <div id="qr-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="font-bold text-lg text-white">Kartu Presensi QR</h3>
+            
+            <div class="bg-white p-6 rounded-xl text-slate-900 space-y-3 shadow-inner">
+                <div id="qrcode-box" class="flex justify-center my-2"></div>
+                <h4 id="modal-emp-name" class="font-bold text-base leading-tight">Nama Karyawan</h4>
+                <p id="modal-emp-dept" class="text-xs text-slate-500">Departemen</p>
+                <div id="modal-emp-code" class="inline-block bg-slate-100 text-slate-700 text-xs font-mono font-bold px-3 py-1 rounded-full border border-slate-300">
+                    EMP-0000
+                </div>
+            </div>
+
+            <button onclick="window.print()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/30">
+                <i data-lucide="printer" class="w-4 h-4"></i>
+                <span>Cetak / Simpan Kartu</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        
+        // PASSWORD UTAMA DIGANTI MENJADI 'adminlimopancer'
+        const ADMIN_PASSWORD_DEFAULT = 'adminlimopancer';
+        
+        let html5QrcodeScanner = null;
+        let isProcessing = false;
+        let isAdminLoggedIn = false;
+
+        let localEmployees = [
+            { id: 1, barcode_id: "EMP-1001", name: "Budi Santoso", department: "IT & Software" },
+            { id: 2, barcode_id: "EMP-1002", name: "Siti Rahma", department: "Human Resources" },
+            { id: 3, barcode_id: "EMP-1003", name: "Deni Pratama", department: "Marketing" }
+        ];
+
+        let localLogs = [
+            { id: 1, employee_id: 1, name: "Budi Santoso", date: new Date().toISOString().split('T')[0], time_in: "07:50:12", time_out: "17:05:00", status: "PRESENT" },
+            { id: 2, employee_id: 2, name: "Siti Rahma", date: new Date().toISOString().split('T')[0], time_in: "08:15:40", time_out: null, status: "LATE" }
+        ];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            initScanner();
+            fetchEmployees();
+            fetchLogs();
+        });
+
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('admin-password');
+            const eyeIcon = document.getElementById('eye-icon');
+
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                eyeIcon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                passInput.type = 'password';
+                eyeIcon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        function switchTab(tab) {
+            if (tab === 'admin' && !isAdminLoggedIn) {
+                document.getElementById('login-modal').classList.remove('hidden');
+                document.getElementById('login-modal').classList.add('flex');
+                document.getElementById('admin-password').focus();
+                return;
+            }
+
+            const viewScanner = document.getElementById('view-scanner');
+            const viewAdmin = document.getElementById('view-admin');
+            const btnScanner = document.getElementById('btn-tab-scanner');
+            const btnAdmin = document.getElementById('btn-tab-admin');
+
+            if (tab === 'scanner') {
+                viewScanner.classList.remove('hidden');
+                viewAdmin.classList.add('hidden');
+                btnScanner.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-blue-600 text-white shadow-md';
+                btnAdmin.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-400 hover:text-white';
+            } else {
+                viewScanner.classList.add('hidden');
+                viewAdmin.classList.remove('hidden');
+                btnAdmin.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-blue-600 text-white shadow-md';
+                btnScanner.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-400 hover:text-white';
+            }
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const pass = document.getElementById('admin-password').value;
+            const errorText = document.getElementById('login-error');
+
+            if (pass === ADMIN_PASSWORD_DEFAULT) {
+                isAdminLoggedIn = true;
+                errorText.classList.add('hidden');
+                closeLoginModal();
+                document.getElementById('btn-logout').classList.remove('hidden');
+                switchTab('admin');
+            } else {
+                errorText.classList.remove('hidden');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            document.getElementById('btn-logout').classList.add('hidden');
+            document.getElementById('admin-password').value = '';
+            switchTab('scanner');
+            alert('Admin berhasil logout.');
+        }
+
+        function closeLoginModal() {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('login-modal').classList.remove('flex');
+            document.getElementById('login-error').classList.add('hidden');
+        }
+
+        function initScanner() {
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader", 
+                { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 },
+                false
+            );
+            html5QrcodeScanner.render(onScanSuccess);
+        }
+
+        function updateStatus(message, type = 'default') {
+            const card = document.getElementById('status-card');
+            const text = document.getElementById('status-text');
+
+            card.className = 'mt-4 p-4 rounded-xl border transition-all ';
+            if (type === 'success') card.className += 'bg-emerald-950/60 border-emerald-500 text-emerald-400';
+            else if (type === 'error') card.className += 'bg-red-950/60 border-red-500 text-red-400';
+            else if (type === 'loading') card.className += 'bg-amber-950/60 border-amber-500 text-amber-400';
+            else card.className += 'bg-slate-900 border-slate-700 text-slate-300';
+
+            text.innerText = message;
+        }
+
+        function onScanSuccess(decodedText) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            updateStatus(`Memproses ID: ${decodedText}...`, 'loading');
+
+            fetch(`${API_BASE}/attendance/scan`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ barcode_id: decodedText })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) updateStatus(`✅ ${data.message}`, 'success');
+                else updateStatus(`❌ ${data.message}`, 'error');
+                
+                fetchLogs();
+                setTimeout(() => { isProcessing = false; updateStatus('Siap melakukan pemindaian...'); }, 3000);
+            })
+            .catch(() => {
+                handleLocalScan(decodedText);
+            });
+        }
+
+        function handleLocalScan(code) {
+            const emp = localEmployees.find(e => e.barcode_id === code);
+            if (!emp) {
+                updateStatus('❌ Barcode / QR ID tidak terdaftar!', 'error');
+            } else {
+                const today = new Date().toISOString().split('T')[0];
+                const now = new Date().toTimeString().split(' ')[0];
+                let log = localLogs.find(l => l.employee_id === emp.id && l.date === today);
+
+                if (!log) {
+                    localLogs.push({
+                        id: localLogs.length + 1,
+                        employee_id: emp.id,
+                        name: emp.name,
+                        date: today,
+                        time_in: now,
+                        time_out: null,
+                        status: now > "08:00:00" ? 'LATE' : 'PRESENT'
+                    });
+                    updateStatus(`✅ Berhasil Absen Masuk: ${emp.name}`, 'success');
+                } else if (!log.time_out) {
+                    log.time_out = now;
+                    updateStatus(`✅ Berhasil Absen Keluar: ${emp.name}`, 'success');
+                } else {
+                    updateStatus(`⚠️ ${emp.name} sudah selesai absen hari ini.`, 'error');
+                }
+                renderLogs(localLogs);
+            }
+
+            setTimeout(() => { isProcessing = false; updateStatus('Siap melakukan pemindaian...'); }, 3000);
+        }
+
+        function fetchEmployees() {
+            fetch(`${API_BASE}/admin/employees`)
+                .then(res => res.json())
+                .then(res => renderEmployees(res.data || localEmployees))
+                .catch(() => renderEmployees(localEmployees));
+        }
+
+        function fetchLogs() {
+            fetch(`${API_BASE}/admin/logs`)
+                .then(res => res.json())
+                .then(res => renderLogs(res.data || localLogs))
+                .catch(() => renderLogs(localLogs));
+        }
+
+        function renderEmployees(data) {
+            localEmployees = data;
+            const container = document.getElementById('employee-card-list');
+            document.getElementById('stat-total-emp').innerText = data.length;
+
+            container.innerHTML = data.map(emp => `
+                <div class="bg-slate-900/60 border border-slate-700/50 p-3 rounded-xl flex items-center justify-between">
+                    <div>
+                        <h4 class="font-semibold text-sm text-white">${emp.name}</h4>
+                        <p class="text-xs text-slate-400">${emp.department}</p>
+                        <span class="inline-block mt-1 font-mono text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded">
+                            ${emp.barcode_id}
+                        </span>
+                    </div>
+                    <button onclick="showQrModal('${emp.name}', '${emp.department}', '${emp.barcode_id}')" 
+                        class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 p-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                        <i data-lucide="qr-code" class="w-4 h-4 text-emerald-400"></i>
+                        <span>Cetak</span>
+                    </button>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function renderLogs(logs) {
+            localLogs = logs;
+            const tbody = document.getElementById('attendance-table-body');
+            
+            document.getElementById('stat-present').innerText = logs.filter(l => l.status === 'PRESENT').length;
+            document.getElementById('stat-late').innerText = logs.filter(l => l.status === 'LATE').length;
+            document.getElementById('stat-checkout').innerText = logs.filter(l => l.time_out !== null).length;
+
+            if (logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">Belum ada absensi terrekam.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = logs.map(log => `
+                <tr class="hover:bg-slate-800/40 transition-colors">
+                    <td class="p-3.5 font-semibold text-white">${log.name}</td>
+                    <td class="p-3.5 text-slate-400 text-xs">${log.date}</td>
+                    <td class="p-3.5 text-emerald-400 font-mono text-xs">${log.time_in || '-'}</td>
+                    <td class="p-3.5 text-purple-400 font-mono text-xs">${log.time_out || '-'}</td>
+                    <td class="p-3.5 text-center">
+                        ${log.status === 'PRESENT' 
+                            ? `<span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs px-2.5 py-1 rounded-full font-semibold">Tepat Waktu</span>`
+                            : `<span class="bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs px-2.5 py-1 rounded-full font-semibold">Terlambat</span>`}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function handleAddEmployee(e) {
+            e.preventDefault();
+            const name = document.getElementById('input-name').value;
+            const department = document.getElementById('input-dept').value;
+
+            const newEmp = {
+                id: localEmployees.length + 1,
+                barcode_id: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
+                name,
+                department
+            };
+
+            fetch(`${API_BASE}/admin/employees`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, department })
+            })
+            .then(res => res.json())
+            .then(res => {
+                fetchEmployees();
+                document.getElementById('form-add-employee').reset();
+            })
+            .catch(() => {
+                localEmployees.push(newEmp);
+                renderEmployees(localEmployees);
+                document.getElementById('form-add-employee').reset();
+            });
+        }
+
+        function filterLogs() {
+            const query = document.getElementById('search-log').value.toLowerCase();
+            renderLogs(localLogs.filter(l => l.name.toLowerCase().includes(query)));
+        }
+
+        function showQrModal(name, dept, code) {
+            document.getElementById('modal-emp-name').innerText = name;
+            document.getElementById('modal-emp-dept').innerText = dept;
+            document.getElementById('modal-emp-code').innerText = code;
+
+            const qrBox = document.getElementById('qrcode-box');
+            qrBox.innerHTML = '';
+            new QRCode(qrBox, { text: code, width: 140, height: 140, colorDark: "#0f172a", colorLight: "#ffffff" });
+
+            document.getElementById('qr-modal').classList.remove('hidden');
+            document.getElementById('qr-modal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('qr-modal').classList.add('hidden');
+            document.getElementById('qr-modal').classList.remove('flex');
+        }
+    </script>
+</body>
+</html>
