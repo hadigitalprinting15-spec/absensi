@@ -6,8 +6,8 @@
     <title>LIMO PANCER - Sistem Absensi & Admin</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Library Pemindai QR/Barcode Kamera -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- ZXing Library (lebih baik untuk barcode/QR) -->
+    <script async src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
     <!-- Library Pembuat QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Lucide Icons -->
@@ -17,19 +17,87 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         
-        #reader video {
+        #scanner-video {
             object-fit: cover !important;
             border-radius: 1rem;
+            width: 100%;
+            max-width: 100%;
+            display: block;
         }
-        #reader__dashboard_section_csr button {
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            font-size: 0.85rem;
-            font-weight: 600;
+
+        .scanner-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 1rem;
+            background: #0f172a;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 220px;
+            height: 220px;
+            border: 3px solid #3b82f6;
             border-radius: 0.5rem;
-            margin-top: 10px;
+            box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .corner {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #3b82f6;
+        }
+
+        .corner.top-left {
+            top: 0;
+            left: 0;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .corner.top-right {
+            top: 0;
+            right: 0;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .corner.bottom-left {
+            bottom: 0;
+            left: 0;
+            border-right: none;
+            border-top: none;
+        }
+
+        .corner.bottom-right {
+            bottom: 0;
+            right: 0;
+            border-left: none;
+            border-top: none;
+        }
+
+        .scanner-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            text-align: center;
+            z-index: 11;
+        }
+
+        #scanner-container {
+            height: 300px;
+            position: relative;
         }
     </style>
 </head>
@@ -81,12 +149,34 @@
                     <p class="text-xs text-slate-400 mt-1">Arahkan kamera ke QR / Barcode ID KULI</p>
                 </div>
 
-                <!-- Reader Kamera -->
-                <div id="reader" class="bg-slate-900 rounded-2xl overflow-hidden border border-slate-700"></div>
+                <!-- Scanner Container dengan ZXing -->
+                <div class="scanner-container">
+                    <video id="scanner-video" class="bg-slate-900"></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                    <div class="scanner-overlay">
+                        <div class="corner top-left"></div>
+                        <div class="corner top-right"></div>
+                        <div class="corner bottom-left"></div>
+                        <div class="corner bottom-right"></div>
+                    </div>
+                    <div class="scanner-hint">Posisikan kode dalam kotak</div>
+                </div>
+
+                <!-- Kontrol Scanner -->
+                <div class="mt-4 flex gap-2 justify-center">
+                    <button id="btn-start-scan" onclick="startScanner()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2">
+                        <i data-lucide="play" class="w-4 h-4"></i>
+                        <span>Mulai Scan</span>
+                    </button>
+                    <button id="btn-stop-scan" onclick="stopScanner()" class="hidden bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2">
+                        <i data-lucide="stop-circle" class="w-4 h-4"></i>
+                        <span>Hentikan</span>
+                    </button>
+                </div>
 
                 <!-- Kartu Indicator Status Scan -->
                 <div id="status-card" class="mt-4 p-4 rounded-xl bg-slate-900 border border-slate-700 transition-all">
-                    <p id="status-text" class="text-sm font-medium text-slate-300">Siap melakukan pemindaian...</p>
+                    <p id="status-text" class="text-sm font-medium text-slate-300">Tekan tombol 'Mulai Scan' untuk memulai</p>
                 </div>
             </div>
         </section>
@@ -197,7 +287,7 @@
                     <div class="relative">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
                         <input type="text" id="search-log" onkeyup="filterLogs()" placeholder="Cari nama KULI..."
-                            class="bg-slate-900/80 border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 w-full sm:w-48 transition-colors">
+                            class="bg-slate-900/80 border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 w-full sm:w-64 transition-colors">
                     </div>
                 </div>
 
@@ -308,10 +398,12 @@
         // PASSWORD UTAMA DIGANTI MENJADI 'adminlimopancer'
         const ADMIN_PASSWORD_DEFAULT = 'adminlimopancer';
         
-        let html5QrcodeScanner = null;
+        let codeReader = null;
+        let videoElement = null;
         let isProcessing = false;
         let isAdminLoggedIn = false;
         let deleteEmployeeId = null;
+        let isScanning = false;
 
         let localEmployees = [
             { id: 1, barcode_id: "EMP-1001", name: "Budi Santoso", department: "Tukang Batu/Sipil" },
@@ -326,10 +418,144 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
-            initScanner();
+            videoElement = document.getElementById('scanner-video');
             fetchEmployees();
             fetchLogs();
         });
+
+        async function startScanner() {
+            try {
+                updateStatus('Mengakses kamera...', 'loading');
+                
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+
+                videoElement.srcObject = stream;
+                videoElement.addEventListener('loadedmetadata', () => {
+                    videoElement.play();
+                });
+
+                isScanning = true;
+                document.getElementById('btn-start-scan').classList.add('hidden');
+                document.getElementById('btn-stop-scan').classList.remove('hidden');
+                
+                updateStatus('Siap melakukan pemindaian...', 'default');
+                
+                // Inisialisasi ZXing CodeReader
+                codeReader = new ZXing.BrowserMultiFormatReader();
+                scanContinuously();
+            } catch (err) {
+                updateStatus('❌ Tidak dapat mengakses kamera. ' + err.message, 'error');
+                console.error(err);
+            }
+        }
+
+        async function scanContinuously() {
+            if (!isScanning || !videoElement) return;
+
+            try {
+                const canvas = document.getElementById('canvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+                context.drawImage(videoElement, 0, 0);
+
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const luminanceSource = new ZXing.RGBLuminanceSource(imageData.data, canvas.width, canvas.height);
+                const binaryBitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
+
+                try {
+                    const result = codeReader.decodeFromImageData(binaryBitmap);
+                    if (result && result.text && !isProcessing) {
+                        handleScanResult(result.text);
+                    }
+                } catch (err) {
+                    // Tidak ada barcode ditemukan, lanjutkan scan
+                }
+            } catch (err) {
+                console.error(err);
+            }
+
+            if (isScanning) {
+                requestAnimationFrame(scanContinuously);
+            }
+        }
+
+        function stopScanner() {
+            isScanning = false;
+            
+            if (videoElement && videoElement.srcObject) {
+                videoElement.srcObject.getTracks().forEach(track => track.stop());
+                videoElement.srcObject = null;
+            }
+
+            document.getElementById('btn-start-scan').classList.remove('hidden');
+            document.getElementById('btn-stop-scan').classList.add('hidden');
+            
+            updateStatus('Scanner dihentikan. Tekan "Mulai Scan" untuk melanjutkan.', 'default');
+        }
+
+        function handleScanResult(code) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            updateStatus(`Memproses ID: ${code}...`, 'loading');
+
+            fetch(`${API_BASE}/attendance/scan`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ barcode_id: code })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) updateStatus(`✅ ${data.message}`, 'success');
+                else updateStatus(`❌ ${data.message}`, 'error');
+                
+                fetchLogs();
+                setTimeout(() => { isProcessing = false; }, 2000);
+            })
+            .catch(() => {
+                handleLocalScan(code);
+            });
+        }
+
+        function handleLocalScan(code) {
+            const emp = localEmployees.find(e => e.barcode_id === code);
+            if (!emp) {
+                updateStatus('❌ Barcode / QR ID tidak terdaftar!', 'error');
+            } else {
+                const today = new Date().toISOString().split('T')[0];
+                const now = new Date().toTimeString().split(' ')[0];
+                let log = localLogs.find(l => l.employee_id === emp.id && l.date === today);
+
+                if (!log) {
+                    localLogs.push({
+                        id: localLogs.length + 1,
+                        employee_id: emp.id,
+                        name: emp.name,
+                        date: today,
+                        time_in: now,
+                        time_out: null,
+                        status: now > "08:00:00" ? 'LATE' : 'PRESENT'
+                    });
+                    updateStatus(`✅ Berhasil Absen Masuk: ${emp.name}`, 'success');
+                } else if (!log.time_out) {
+                    log.time_out = now;
+                    updateStatus(`✅ Berhasil Absen Keluar: ${emp.name}`, 'success');
+                } else {
+                    updateStatus(`⚠️ ${emp.name} sudah selesai absen hari ini.`, 'error');
+                }
+                renderLogs(localLogs);
+            }
+
+            setTimeout(() => { isProcessing = false; }, 2000);
+        }
 
         function togglePasswordVisibility() {
             const passInput = document.getElementById('admin-password');
@@ -391,6 +617,7 @@
             isAdminLoggedIn = false;
             document.getElementById('btn-logout').classList.add('hidden');
             document.getElementById('admin-password').value = '';
+            stopScanner();
             switchTab('scanner');
             alert('Admin berhasil logout.');
         }
@@ -399,15 +626,6 @@
             document.getElementById('login-modal').classList.add('hidden');
             document.getElementById('login-modal').classList.remove('flex');
             document.getElementById('login-error').classList.add('hidden');
-        }
-
-        function initScanner() {
-            html5QrcodeScanner = new Html5QrcodeScanner(
-                "reader", 
-                { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 },
-                false
-            );
-            html5QrcodeScanner.render(onScanSuccess);
         }
 
         function updateStatus(message, type = 'default') {
@@ -421,62 +639,6 @@
             else card.className += 'bg-slate-900 border-slate-700 text-slate-300';
 
             text.innerText = message;
-        }
-
-        function onScanSuccess(decodedText) {
-            if (isProcessing) return;
-            isProcessing = true;
-
-            updateStatus(`Memproses ID: ${decodedText}...`, 'loading');
-
-            fetch(`${API_BASE}/attendance/scan`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ barcode_id: decodedText })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) updateStatus(`✅ ${data.message}`, 'success');
-                else updateStatus(`❌ ${data.message}`, 'error');
-                
-                fetchLogs();
-                setTimeout(() => { isProcessing = false; updateStatus('Siap melakukan pemindaian...'); }, 3000);
-            })
-            .catch(() => {
-                handleLocalScan(decodedText);
-            });
-        }
-
-        function handleLocalScan(code) {
-            const emp = localEmployees.find(e => e.barcode_id === code);
-            if (!emp) {
-                updateStatus('❌ Barcode / QR ID tidak terdaftar!', 'error');
-            } else {
-                const today = new Date().toISOString().split('T')[0];
-                const now = new Date().toTimeString().split(' ')[0];
-                let log = localLogs.find(l => l.employee_id === emp.id && l.date === today);
-
-                if (!log) {
-                    localLogs.push({
-                        id: localLogs.length + 1,
-                        employee_id: emp.id,
-                        name: emp.name,
-                        date: today,
-                        time_in: now,
-                        time_out: null,
-                        status: now > "08:00:00" ? 'LATE' : 'PRESENT'
-                    });
-                    updateStatus(`✅ Berhasil Absen Masuk: ${emp.name}`, 'success');
-                } else if (!log.time_out) {
-                    log.time_out = now;
-                    updateStatus(`✅ Berhasil Absen Keluar: ${emp.name}`, 'success');
-                } else {
-                    updateStatus(`⚠️ ${emp.name} sudah selesai absen hari ini.`, 'error');
-                }
-                renderLogs(localLogs);
-            }
-
-            setTimeout(() => { isProcessing = false; updateStatus('Siap melakukan pemindaian...'); }, 3000);
         }
 
         function fetchEmployees() {
